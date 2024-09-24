@@ -1,17 +1,17 @@
-#this script functions to set all transcripts isoform of a certain gene (RPGR here) in gtf file as individual genes, thereby enabling isoform detection using 10X pipeline. However, it should be noted that given the limitation of short reads 10X seq, result requires further verification. 
+#this script functions to set all transcripts isoform of a certain gene in gtf file as individual genes, thereby enabling isoform detection using 10X pipeline. However, it should be noted that given the limitation of short reads 10X seq, result requires further verification. 
 
 
 
 # Define things
-directory = "/Users/jiajia/Desktop/" #define directory of things
+directory = "" #define directory of things
 gtf_file = directory + "genes.gtf" #gtf file from 10 official genome reference folder
-rpgr_output = directory + 'temp.txt'
-gene = 'RPGR'
+temp_output = directory + 'temp.txt'
+gene = 'RPGR' #your gene
 output_file = directory + gene + '.gtf'
 
 
 import subprocess
-subprocess.run(f'grep \'"{gene}"\' "{gtf_file}" > "{rpgr_output}"', shell=True)
+subprocess.run(f'grep \'"{gene}"\' "{gtf_file}" > "{temp_output}"', shell=True)
 
 # Global variables
 n_transcript = 0
@@ -36,7 +36,7 @@ def modify_ids(n_transcript, gene_id, transcript_name, hgnc_id, havana_gene):
     return new_gene_id, new_gene_name, new_hgnc_id, new_havana_gene
 
 # Open and read input file
-with open(rpgr_output, 'r') as infile:
+with open(temp_output, 'r') as infile:
     lines = infile.readlines()
 
 print('Total ' + str(len(lines)) + ' lines containing target gene.')
@@ -121,7 +121,7 @@ for i, line in enumerate(lines):
         modified_lines.append(modified_transcript_line)
 
 # Write the modified content to the new output file
-with open(rpgr_output, 'w') as outfile:
+with open(temp_output, 'w') as outfile:
     outfile.writelines(modified_lines)
 
 print('Total ' + str(len(modified_lines)) + ' lines printed.')
@@ -136,7 +136,7 @@ start_index = line_numbers[0]-1
 end_index = line_numbers[-1]+1
 
 subprocess.run(['sed', '-n', f'1,{start_index}p', gtf_file], stdout=open(output_file, 'w'))
-subprocess.run(['cat', rpgr_output], stdout=open(output_file, 'a'))
+subprocess.run(['cat', temp_output], stdout=open(output_file, 'a'))
 subprocess.run(['sed', '-n', f'{end_index},$p', gtf_file], stdout=open(output_file, 'a'))
 
 #Check point
@@ -152,5 +152,5 @@ print('Total ' + str(expected_n) + ' lines expected in new gtf file.')
 
 
 #now run cellranger pipeline for build ref and alignment
-#cellranger mkref --genome=RPGR --fasta=/usersdata/joyzheng/yard/refdata-gex-GRCh38-2020-A/fasta/genome.fa --genes=/usersdata/joyzheng/GW21/RPGR.gtf
-#cellranger count --id GW21 --transcriptome /usersdata/joyzheng/GW21/RPGR --fastqs /usersdata/joyzheng/GW21 --sample GW21 --localcores 24 --localmem 128
+#cellranger mkref --genome=RPGR --fasta=/refdata-gex-GRCh38-2020-A/fasta/genome.fa --genes=RPGR.gtf
+#cellranger count --id GW21 --transcriptome /GW21/RPGR --fastqs /usersdata/joyzheng/GW21 --sample GW21 --localcores 24 --localmem 128
